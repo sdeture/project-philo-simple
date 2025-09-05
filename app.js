@@ -110,7 +110,7 @@ chatForm.addEventListener('submit', async (e) => {
     
     if (!message) return;
     
-    // Add user message
+    // Add user message (this adds to both UI and messages array)
     addMessage('user', message);
     messageInput.value = '';
     
@@ -122,8 +122,8 @@ chatForm.addEventListener('submit', async (e) => {
         // Add loading indicator
         const loadingId = addMessage('assistant', '<div class="loading"></div>', true);
         
-        // Call OpenRouter API
-        const response = await callOpenRouter(message);
+        // Call OpenRouter API - no need to pass message since it's already in messages array
+        const response = await callOpenRouter();
         
         // Remove loading and add actual response
         removeMessage(loadingId);
@@ -174,7 +174,7 @@ function removeMessage(messageId) {
 }
 
 // Call OpenRouter API
-async function callOpenRouter(userMessage) {
+async function callOpenRouter() {
     try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -189,16 +189,10 @@ async function callOpenRouter(userMessage) {
                 provider: {
                     order: [CONFIG.provider]
                 },
-                messages: [
-                    ...messages.map(msg => ({
-                        role: msg.role,
-                        content: msg.content
-                    })),
-                    {
-                        role: 'user',
-                        content: userMessage
-                    }
-                ]
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }))
             })
         });
 
